@@ -182,7 +182,7 @@ INSERT INTO Listens (listen_id, user_id, song_id, listen_date) VALUES
 
 
 select * from Songs;
-select * from Listens
+select * from Listens;
 
 
 /*
@@ -195,8 +195,23 @@ and artist_name) and Listens (containing listen_id, user_id, song_id, and listen
 
 */
 
+with cte1 as (
+select count(listen_id) as total_listener,song_id from Listens group by song_id
+),
+cte2 as (
+select song_id,song_name,artist_name from Songs
+)
+select cte1.total_listener,cte1.song_id,cte2.song_name
+from cte1 left join cte2 
+on cte1.song_id=cte2.song_id
+order by total_listener desc
+limit 10;
 
+-- another method
 
-
-
-
+select l.song_id,
+count(l.listen_id)as listener,s.song_name
+from listens as l left join Songs as s
+on l.song_id=s.song_id
+group by l.song_id
+order by listener desc
