@@ -217,5 +217,194 @@ select count(distinct(concat(user_firstname,user_lastname))) as unique_customer,
 from user_flags
 where flag_id is not null 
 group by video_id 
-order by 1 desc
+order by 1 desc;
 
+
+
+-- Day 33/50 SQL challenge
+
+-- Create table fb_active_users
+CREATE TABLE fb_active_users (
+    user_id INT,
+    name VARCHAR(50),
+    status VARCHAR(10),
+    country VARCHAR(50)
+);
+
+-- Insert records into fb_active_users
+INSERT INTO fb_active_users (user_id, name, status, country) VALUES
+(33, 'Amanda Leon', 'open', 'Australia'),
+(27, 'Jessica Farrell', 'open', 'Luxembourg'),
+(18, 'Wanda Ramirez', 'open', 'USA'),
+(50, 'Samuel Miller', 'closed', 'Brazil'),
+(16, 'Jacob York', 'open', 'Australia'),
+(25, 'Natasha Bradford', 'closed', 'USA'),
+(34, 'Donald Ross', 'closed', 'China'),
+(52, 'Michelle Jimenez', 'open', 'USA'),
+(11, 'Theresa John', 'open', 'China'),
+(37, 'Michael Turner', 'closed', 'Australia'),
+(32, 'Catherine Hurst', 'closed', 'Mali'),
+(61, 'Tina Turner', 'open', 'Luxembourg'),
+(4, 'Ashley Sparks', 'open', 'China'),
+(82, 'Jacob York', 'closed', 'USA'),
+(87, 'David Taylor', 'closed', 'USA'),
+(78, 'Zachary Anderson', 'open', 'China'),
+(5, 'Tiger Leon', 'closed', 'China'),
+(56, 'Theresa Weaver', 'closed', 'Brazil'),
+(21, 'Tonya Johnson', 'closed', 'Mali'),
+(89, 'Kyle Curry', 'closed', 'Mali'),
+(7, 'Donald Jim', 'open', 'USA'),
+(22, 'Michael Bone', 'open', 'Canada'),
+(31, 'Sara Michaels', 'open', 'Denmark');
+
+select * from fb_active_users;
+/*
+-- Meta Data Analyst Question 
+
+You have meta table with columns
+user_id, name, status, country
+
+Output share of US users that are active. 
+Active users are the ones with an 
+"open" status in the table.
+
+Return total users and active users
+and active users share for US
+*/
+-- share = proportion of active user /total_no_of user
+-- us
+
+with cte as (
+select count(*) as total_users,
+(sum(case when status='open' then 1 else 0 end)) as active_users
+from fb_active_users
+where country='USA'
+)
+select *,round((active_users/total_users)*100,2) as shares from cte;
+
+-- Your Task
+-- Find non_active users share for China
+
+with cte as (
+select count(*) as total_users,
+(sum(case when status='closed' then 1 else 0 end)) as active_users
+from fb_active_users
+where country='China'
+)
+select *,round((active_users/total_users)*100,2) as shares from cte;
+
+-- Day 34/50 SQL Challenge
+
+-- Create table bank_transactions
+CREATE TABLE bank_transactions (
+    transaction_id SERIAL PRIMARY KEY,
+    bank_id INT,
+    customer_id INT,
+    transaction_amount DECIMAL(10, 2),
+    transaction_type VARCHAR(10),
+    transaction_date DATE
+);
+
+-- Insert sample records into bank_transactions
+INSERT INTO bank_transactions (bank_id, customer_id, transaction_amount, transaction_type, transaction_date) VALUES
+(1, 101, 500.00, 'credit', '2024-01-01'),
+(1, 101, 200.00, 'debit', '2024-01-02'),
+(1, 101, 300.00, 'credit', '2024-01-05'),
+(1, 101, 150.00, 'debit', '2024-01-08'),
+(1, 102, 1000.00, 'credit', '2024-01-01'),
+(1, 102, 400.00, 'debit', '2024-01-03'),
+(1, 102, 600.00, 'credit', '2024-01-05'),
+(1, 102, 200.00, 'debit', '2024-01-09');
+
+
+
+
+/*
+You are given a bank transaction data 
+with columns bank_id, customer_id, 
+amount_type(credit debit), 
+transaction_amount and transaction_date
+
+-- Write a query to find starting and ending 
+trans amount for each customer
+
+Return cx_id, their first_transaction_amt, 
+last_transaction and these transaction_date
+
+*/
+-- 
+SELECT * FROM bank_transactions;
+with cte as (
+select customer_id,transaction_amount,transaction_date,
+row_number() over(partition by customer_id order by transaction_date asc) as rnk
+from bank_transactions
+),
+cte1 as (
+select  customer_id,transaction_amount,transaction_date from cte where rnk=1
+),
+cte2 as (
+select  customer_id,transaction_amount,transaction_date from cte where rnk=(select max(rnk) from cte)
+)
+select cte1.customer_id,cte1.transaction_amount as min,cte2.transaction_amount as max_amount,cte1.transaction_date,cte2.transaction_date
+from cte1 left join cte2
+on cte1.customer_id=cte2.customer_id;
+
+-- Day 35/50 SQL Challenge
+
+DROP TABLE IF EXISTS Students;
+CREATE TABLE Students (
+    student_id INT PRIMARY KEY,
+    student_name VARCHAR(50),
+    marks INT,
+    class VARCHAR(10)
+);
+
+
+INSERT INTO Students (student_id, student_name, marks, class) VALUES
+(1, 'John Doe', 85, 'A'),
+(2, 'Jane Smith', 92, 'B'),
+(3, 'Michael Johnson', 78, 'A'),
+(4, 'Emily Brown', 59, 'C'),
+(5, 'David Lee', 88, 'B'),
+(6, 'Sarah Wilson', 59, 'A'),
+(7, 'Daniel Taylor', 90, 'C'),
+(8, 'Emma Martinez', 79, 'B'),
+(9, 'Christopher Anderson', 87, 'A'),
+(10, 'Olivia Garcia', 91, 'C'),
+(11, 'James Rodriguez', 83, 'B'),
+(12, 'Sophia Hernandez', 94, 'A'),
+(13, 'Matthew Martinez', 76, 'C'),
+(14, 'Isabella Lopez', 89, 'B'),
+(15, 'Ethan Gonzalez', 80, 'A'),
+(16, 'Amelia Perez', 93, 'C'),
+(17, 'Alexander Torres', 77, 'B'),
+(18, 'Mia Flores', 86, 'A'),
+(19, 'William Sanchez', 84, 'C'),
+(20, 'Ava Ramirez', 97, 'B'),
+(21, 'Daniel Taylor', 75, 'A'),
+(22, 'Chloe Cruz', 98, 'C'),
+(23, 'Benjamin Ortiz', 89, 'B'),
+(24, 'Harper Reyes', 99, 'A'),
+(25, 'Ryan Stewart', 99, 'C');
+
+select * from Students;
+
+/*
+Data Analyst Interview Questions 
+
+-- Write a query to fetch students
+with minmum marks and maximum marks 
+
+*/
+select * from Students where marks=(select min(marks) from Students)
+union all
+select * from Students where marks=(select max(marks) from Students);
+
+-- Your Task
+-- Write a SQL query to return students with maximum marks in each class
+
+-- group by class
+-- max marks
+
+select student_name,class,marks from Students as s1
+where marks=(select max(marks) from Students  as s2 where s1.class=s2.class)
